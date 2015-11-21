@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="asq" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <title>asq-code-q</title>
+
+  <script src="../../../webcomponentsjs/webcomponents.min.js"></script>
+  <script src="../../../web-component-tester/browser.js"></script>
+
+  <!-- Step 1: import the element to test -->
+  <link rel="import" href="../../asq-code-q.html">
+</head>
+<body>
+
+  <!-- You use the document as a place to set up your fixtures. -->
+  <asq-code-q id="m" mode="java" tabsize="2">
+    <asq-stem><h4>Implement a for loop in Java</h4></asq-stem>
+    <code>public class C {
+      public void m() {
+        int i = i + 5 + ((int)5.0) + ((int)5f);
+      }
+    }
+    </code>
+  </asq-code-q>
+
+  <script>
+    var m = document.querySelector('#m');
+    suite('<asq-code-q>', function() {
+      test('test default values', function() {
+        assert.equal(m.mode, "java");
+        assert.equal(m.theme, "monokai");
+        assert.isFalse(m.readonly);
+        assert.isFalse(m.wrap);
+      });
+      
+    });
+  </script>
+
+</body>
+</html>

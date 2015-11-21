@@ -1,0 +1,364 @@
+<link rel="import" href="../../../polymer/polymer.html">
+<link rel="import" href="../../../ace-element/ace-element.html">
+<link rel="import" href="../../../asq-base/asq-base.html">
+<link rel="import" href="../../../iron-list/iron-list.html">
+<link rel="import" href="../../../iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../../paper-item/paper-item.html">
+<link rel="import" href="../../../paper-tabs/paper-tab.html">
+<link rel="import" href="../../../paper-tabs/paper-tabs.html">
+<link rel="import" href="../../../paper-styles/color.html">
+<link rel="import" href="../../../paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../../../paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../../iron-icons/av-icons.html">
+<link rel="import" href="../../button-styles.html">
+<!--
+`asq-sqlite-q-presenter` is the __presenter__ version of `asq-sqlite-q`. It's not intended to be used on its own.
+
+@element asq-sqlite-q-presenter
+@demo demo/index.html
+@group ASQ Elements
+@blurb Element used for coding questions.
+@homepage http://github.com/ASQ-USI-Elements/asq-sqlite-q
+-->
+<dom-module id="asq-sqlite-q-presenter">
+  <style>
+    :host{
+      @apply(--layout-vertical);
+      @apply(--layout-flex);
+      min-width:100px;
+      min-height: 300px;
+      --paper-tabs-selection-bar-color: #333;
+      --paper-toolbar-background: #CFD8DC;
+      --paper-toolbar-color: #000;  
+    }
+
+    #statusMsg{
+       padding:0 0.4em;
+       @apply(--layout-flex);
+    }
+
+    #errorMsg{
+      @apply(--asq-sqlite-q-error-message);
+      color: red;
+      font-family: monospace;
+    }
+    
+    #output{
+      @apply(--asq-sqlite-q-output);
+      @apply(--layout-flex);
+      padding-top: 20px;
+    }
+
+    #le-content{
+     @apply(--layout-horizontal);
+     @apply(--layout-flex);
+     @apply(--asq-sqlite-q-content);
+    }
+
+    #main-container{
+      @apply(--layout-flex-3);
+      @apply(--layout-vertical);
+    }
+
+    #aceContainer{
+      position:relative;
+      min-height:150px;
+      @apply(--layout-flex);
+      @apply(--asq-sqlite-q-aceContainer);
+    }
+
+    #list-container{
+      @apply(--layout-flex);
+      @apply(--layout-vertical);
+     }
+
+    #submissionListWrapper{
+      @apply(--layout-flex);
+      display: none;
+    }
+
+     #submissionList {
+       @apply(--layout-flex);
+     }
+
+     #submissionList paper-item{
+       overflow:hidden;
+       padding: 12px 5px 0;
+       background-color: white;
+       cursor: pointer;
+       font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
+       @apply(--shadow-elevation-2dp);
+       outline:none;
+     }
+
+      #submissionList paper-item[focused]{
+        background-color: var(--google-grey-300);
+      }
+
+      table {
+        width:auto;
+        border:1px solid black;
+        border-collapse:collapse;
+        margin-bottom:10px;
+      }
+
+      th{
+        font-family: monospace;
+      }
+
+      th, td {
+        border:1px solid #777;
+      }
+
+
+
+    </style>
+  <template>
+    <div class="content-wrapper">
+      <content select="asq-stem"></content>
+    </div>
+    
+    <div id="le-content">
+      <div id="main-container">
+        <paper-toolbar>
+          <paper-icon-button id="executeBtn" icon="av:play-arrow" on-tap="_onExecuteBtnTap" title="Execute Query"></paper-icon-button>          
+          <span id="statusMsg">{{_statusMessage}}</span>
+        </paper-toolbar>
+        <div id="aceContainer">
+          <ace-element id="editor" mode="sql" theme="{{theme}}" readonly="{{disabled}}" wrap="{{wrap}}" font-size="{{fontSize}}" tabsize="{{tabSize}}">{{value}}</ace-element>
+        </div>
+        <div id="output">
+          <div id="errorMsg">{{_errorMessage}}</div>
+          <template is="dom-repeat" items="{{_results}}" as="result">
+            <table>
+              <thead>
+                <template is="dom-repeat" items="{{result.columns}}" as="column">
+                  <th>{{column}}</th>
+                </template>              
+              </thead>
+              <tbody>
+                 <template is="dom-repeat" items="{{result.values}}" as="row">
+                   <tr>
+                    <template is="dom-repeat" items="{{row}}" as="cell">
+                      <td>{{cell}}</td>
+                    </template>
+                   </tr>
+                 </template>
+              </tbody>
+            </table>
+          </template>
+        </div>
+      </div>
+      
+
+      <div id="list-container">
+        <paper-tabs selected="0" selected-attribute="active" noink role="tablist">
+          <paper-tab on-click="toggleSubmissionList" role="tab">Submissions</paper-tab>            
+        </paper-tabs>
+          <div id="submissionListWrapper">
+            <iron-list id="submissionList" items="[[_submissions]]" as="submission" selection-enabled selected-item="{{_selectedSubmissionItem}}">
+              <template>
+                <paper-item>#<span>[[indexPlusOne(index)]]</span>&nbsp;&nbsp;<span>[[submission.submission]]</span>
+                </paper-item>
+              </template>
+            </iron-list>
+          </div>
+      </div>
+    </div>
+
+  </template>
+</dom-module>
+<script>
+  (function () {
+    Polymer({
+      is: 'asq-sqlite-q-presenter',
+      
+      properties: {
+
+        _answers: {
+          type: Array,
+          notify: true,
+          value: function() { return []; }
+        },
+
+        /**
+         * Set to true to style the element as disabled.
+         * Binded to `readonly` of ace-editor.
+         */
+        disabled: {
+          type: Boolean,
+          value: false,
+          notify: true,
+          reflectToAttribute: true
+        },
+
+        /**
+         * The fontSize property of the ace-element.
+         */
+        fontSize: { 
+          type: String,
+          value: "12px",
+          notify: true,
+          reflectToAttribute: true
+        },
+
+        /**
+         * The tabSize property of the ace-element.
+         */
+        tabSize: { 
+          type: Number,
+          value: 2,
+          notify: true,
+          reflectToAttribute: true,
+        },
+
+        /**
+         * The theme property of the ace-element.
+         */
+        theme: {
+          type: String,
+          value: 'monokai',
+          notify: true,
+          reflectToAttribute: true,
+        },
+
+        /**
+         * The value property of the ace-element.
+         */
+        value: {
+          type: String,
+          value: '',
+          notify: true,
+          reflectToAttribute: true,
+          observer: '_valueChanged'
+        },
+
+        /**
+         * The wrap property of the ace-element.
+         */
+        wrap: {
+          type: Boolean,
+          value: false,
+          notify: true,
+          reflectToAttribute: true,
+        },
+
+        _selectedSubmissionItem: {
+          observer: '_selectedSubmissionItemChanged'
+        },
+
+        _selectedTab:{
+          notify: true
+        },
+
+        /**
+         * Event bus to communicate with ASQ
+         */
+        eventBus: {
+          type: Object,
+          observer: "_eventBusChanged",
+          notify: true
+        }
+      },
+
+
+      toggleSubmissionList: function(evt, detail){
+        var current = this.$.submissionListWrapper.style.display;
+        this.$.submissionListWrapper.style.display = (current == 'flex') ? 'none': 'flex';
+        this.$.submissionList._update();
+      },
+
+      attached: function(){
+        //delay to make sure ace-editors are initialized
+        setTimeout(function(){
+          this.$.editor.addEventListener('editor-input', this._editorValueChanged.bind(this))
+          this.$.editor.editor.resize();
+
+          this._startWorker();
+        }.bind(this), 1)
+      },
+
+      _startWorker: function(){
+        // Start the worker in which sql.js will run
+        this.worker = new Worker(this.resolveUrl("../../js/worker.sql.js"));
+        this.worker.onerror = function error(e) {
+          this._results = [];
+          this._statusMessage = "Error"
+          this._errorMessage = e.message.toString();
+        }.bind(this)
+
+        // Open a database
+        this.worker.postMessage({action:'open'});
+      },
+
+      _onExecuteBtnTap: function(){
+        this._execute(this.value + ';');
+      },
+
+      _execute: function(commands) {
+        this.worker.onmessage = function(event) {
+          this._errorMessage = '';
+          this._results=event.data.results;
+
+
+          this._statusMessage = "Displaying results";
+        }.bind(this); 
+
+        this._statusMessage = "Executing SQL";
+        this.worker.postMessage({action:'exec', sql:commands});
+        this._statusMessage = "Fetching results...";
+      },
+
+      indexPlusOne: function(index){
+        return ++index;
+      },
+
+      _valueChanged: function(newVal){
+        if(this.value && this.$.editor.editorValue != this.value){
+          this.$.editor.editorValue = this.value;
+          this.$.editor.editor.clearSelection(1);
+        }
+      },
+
+      _editorValueChanged: function(evt){
+        this.value = evt.target.editorValue;
+      },
+
+      _selectedSubmissionItemChanged: function(newItem, old){
+        if(! newItem) return;
+        this.value = newItem.submission;
+      },
+
+      _onQuestionType: function (evt) {
+        if (!evt || !evt.questionType)
+          return;
+        if (evt.questionType == 'asq-sqlite-q') {
+          if (evt.type == 'progress') {
+            this._onProgress(evt);
+          } else if (evt.type == 'restorePresenter') {
+            this._onRestorePresenter(evt);
+          }
+        }
+      },
+
+      _onRestorePresenter: function (evt) {
+        evt.questions.forEach(function(q){
+         if(q.uid != this.uid) return;
+         this._submissions = q.answers;
+        }.bind(this));
+      },
+
+      _onProgress: function (evt) {
+        if (!evt.question || evt.question.uid !== this.uid)
+          return;
+
+        this._submissions = evt.question.answers;
+      },
+
+      _eventBusChanged: function (eventBus, old) {
+        if(!eventBus) return;
+        eventBus.on('asq:question_type', this._onQuestionType.bind(this));
+      }
+    });
+  }());
+</script>

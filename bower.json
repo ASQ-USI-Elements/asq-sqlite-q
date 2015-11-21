@@ -1,0 +1,37 @@
+{
+  "name": "asq-sqlite-q",
+  "version": "0.2.0",
+  "homepage": "https://github.com/ASQ-USI-Elements/asq-sqlite-q",
+  "authors": [
+    "Vasileios Triglianos"
+  ],
+  "description": "ASQ SQLite question plugin",
+  "keywords": [
+    "ASQ"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "polymer": "polymer/polymer#~1.2.1",
+    "ace-element": "triglian/ace-element#master",
+    "asq-base": "ASQ-USI-Elements/asq-base#master",
+    "iron-list": "polymerelements/iron-list#~1.1.5",
+    "paper-tabs": "polymerelements/paper-tabs#~1.0.10",
+    "paper-item": "PolymerElements/paper-item#~1.0.7",
+    "paper-styles": "PolymerElements/paper-styles#~1.0.12",
+    "iron-collapse": "PolymerElements/iron-collapse#~1.0.4",
+    "paper-toolbar": "PolymerElements/paper-toolbar#~1.1.1",
+    "paper-icon-button": "PolymerElements/paper-icon-button#~1.0.5"
+  },
+  "ignore": [
+    "index.js",
+    "lib",
+    "package.json",
+    "node_modules",
+    ".npmignore",
+    "test/server"
+  ],
+  "devDependencies": {
+    "web-component-tester": "Polymer/web-component-tester#~3.4.0",
+    "iron-component-page": "PolymerElements/iron-component-page#~1.1.0"
+  }
+}

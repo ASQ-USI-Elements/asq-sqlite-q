@@ -1,0 +1,5 @@
+public class C {
+  public void m() {
+    int i = i + 5 + ((int)5.0) + ((int)5f);
+  }
+}
