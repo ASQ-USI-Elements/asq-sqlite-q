@@ -1,3 +1,3 @@
 'use strict';
 
-module.exports = require('./lib/asqCodeQuestionPlugin');
+module.exports = require('./lib/asqSQLiteQuestionPlugin');
