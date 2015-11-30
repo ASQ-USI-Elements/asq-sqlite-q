@@ -62,6 +62,7 @@ Features some modified code from https://github.com/kripken/sql.js/blob/gh-pages
       @apply(--asq-sqlite-q-output);
       @apply(--layout-flex);
       padding-top: 20px;
+      overflow-y: auto;
     }
 
     table {
@@ -129,6 +130,14 @@ Features some modified code from https://github.com/kripken/sql.js/blob/gh-pages
       is: 'asq-sqlite-q-viewer',
       
       properties: {
+
+        /**
+         * Load an external db from a URL. If not specified a new empty database is created.
+         */
+        dbUrl: {
+          type:String, 
+          notify: true
+        },
 
         /**
          * Set to true to style the element as disabled.
@@ -202,6 +211,8 @@ Features some modified code from https://github.com/kripken/sql.js/blob/gh-pages
         }
       },
 
+      observers: ['_dbUrlChanged(dbUrl, worker)'],
+
       attached: function(){
         //delay to make sure ace-editors are initialized
         setTimeout(function(){
@@ -211,6 +222,28 @@ Features some modified code from https://github.com/kripken/sql.js/blob/gh-pages
           this._startWorker();
 
         }.bind(this), 1)
+      },
+
+      _dbUrlChanged: function(dbUrl, worker){
+        var oReq = new XMLHttpRequest();  
+        oReq.open("GET", dbUrl, true);  
+        oReq.responseType = "arraybuffer";  
+          
+        oReq.onload = function (oEvent) {  
+          var uInt8Array = new Uint8Array(oReq.response);
+          this._workerLoadDb(uInt8Array)
+        }.bind(this);  
+          
+        oReq.send(null);  
+      },
+
+      _workerLoadDb: function(db){
+        try {
+          this.worker.postMessage({action:'open',buffer:db}, [db]);
+        }
+        catch(exception) {
+          this.worker.postMessage({action:'open',buffer:db});
+        }
       },
 
       _startWorker: function(){

@@ -8,6 +8,7 @@
 <link rel="import" href="../../../paper-tabs/paper-tabs.html">
 <link rel="import" href="../../../paper-styles/color.html">
 <link rel="import" href="../../../paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../../../paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../../../paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../../iron-icons/av-icons.html">
 <link rel="import" href="../../button-styles.html">
@@ -47,6 +48,7 @@
       @apply(--asq-sqlite-q-output);
       @apply(--layout-flex);
       padding-top: 20px;
+      overflow-y: auto;
     }
 
     #le-content{
@@ -123,6 +125,7 @@
         <paper-toolbar>
           <paper-icon-button id="executeBtn" icon="av:play-arrow" on-tap="_onExecuteBtnTap" title="Execute Query"></paper-icon-button>          
           <span id="statusMsg">{{_statusMessage}}</span>
+          <paper-checkbox checked="{{_shouldReloadDb}}">Reload database on submission</paper-checkbox>
         </paper-toolbar>
         <div id="aceContainer">
           <ace-element id="editor" mode="sql" theme="{{theme}}" readonly="{{disabled}}" wrap="{{wrap}}" font-size="{{fontSize}}" tabsize="{{tabSize}}">{{value}}</ace-element>
@@ -174,6 +177,14 @@
       is: 'asq-sqlite-q-presenter',
       
       properties: {
+
+        /**
+         * Load an external db from a URL. If not specified a new empty database is created.
+         */
+        dbUrl: {
+          type:String, 
+          notify: true
+        },
 
         _answers: {
           type: Array,
@@ -258,15 +269,16 @@
           type: Object,
           observer: "_eventBusChanged",
           notify: true
+        },
+
+        _shouldReloadDb:{
+          type: Boolean,
+          value: true,
+          notify: true
         }
       },
 
-
-      toggleSubmissionList: function(evt, detail){
-        var current = this.$.submissionListWrapper.style.display;
-        this.$.submissionListWrapper.style.display = (current == 'flex') ? 'none': 'flex';
-        this.$.submissionList._update();
-      },
+      observers: ['_dbUrlChanged(dbUrl, worker)'],
 
       attached: function(){
         //delay to make sure ace-editors are initialized
@@ -276,6 +288,34 @@
 
           this._startWorker();
         }.bind(this), 1)
+      },
+
+      _dbUrlChanged: function(dbUrl, worker){
+        var oReq = new XMLHttpRequest();  
+        oReq.open("GET", dbUrl, true);  
+        oReq.responseType = "arraybuffer";  
+          
+        oReq.onload = function (oEvent) {  
+          this._externalDb = new Uint8Array(oReq.response);
+          this._workerLoadDb(this._externalDb)
+        }.bind(this);  
+          
+        oReq.send(null);  
+      },
+
+      toggleSubmissionList: function(evt, detail){
+        var current = this.$.submissionListWrapper.style.display;
+        this.$.submissionListWrapper.style.display = (current == 'flex') ? 'none': 'flex';
+        this.$.submissionList._update();
+      },
+
+      _workerLoadDb: function(db){
+        try {
+          this.worker.postMessage({action:'open',buffer:db}, [db]);
+        }
+        catch(exception) {
+          this.worker.postMessage({action:'open',buffer:db});
+        }
       },
 
       _startWorker: function(){
@@ -326,6 +366,15 @@
 
       _selectedSubmissionItemChanged: function(newItem, old){
         if(! newItem) return;
+
+        if(this._shouldReloadDb){
+          if(this._externalDb){
+            this._workerLoadDb(this._externalDb)
+          }else{
+            this.worker.postMessage({action:'open'});
+          }
+        }
+
         this.value = newItem.submission;
       },
 

@@ -10,7 +10,7 @@
 
 Example:
 
-    <asq-sqlite-q mode="java" tabsize="2">
+    <asq-sqlite-q db-url="assets/mydb.sqlite" tabsize="2">
       <asq-stem><h4>Implement a for loop in Java</h4></asq-stem>
       <code>public class C {
         public void m() {
@@ -40,14 +40,14 @@ Example:
 
     <!-- Viewer -->
     <template is="dom-if" if="{{hasRole(role, roles.VIEWER)}}" restamp>
-      <asq-sqlite-q-viewer uid="[[uid]]" id="le-viewer" theme="{{theme}}" font-size="{{fontSize}}" tab-size="{{tabSize}}" disabled="{{disabled}}" value="{{value}}" wrap="{{wrap}}" event-bus="[[eventBus]]">
+      <asq-sqlite-q-viewer uid="[[uid]]" id="le-viewer" db-url="{{dbUrl}}" theme="{{theme}}" font-size="{{fontSize}}" tab-size="{{tabSize}}" disabled="{{disabled}}" value="{{value}}" wrap="{{wrap}}" event-bus="[[eventBus]]">
         <content></content>
       </asq-sqlite-q-viewer>
     </template>
 
     <!-- Presenter -->
    <template is="dom-if" if="{{hasRole(role, roles.PRESENTER)}}" restamp>
-      <asq-sqlite-q-presenter uid="[[uid]]" id="le-presenter" theme="{{theme}}" font-size="{{fontSize}}" tab-size="{{tabSize}}" disabled="{{disabled}}" value="{{value}}" wrap="{{wrap}}" event-bus="[[eventBus]]">
+      <asq-sqlite-q-presenter uid="[[uid]]" id="le-presenter" db-url="{{dbUrl}}" theme="{{theme}}" font-size="{{fontSize}}" tab-size="{{tabSize}}" disabled="{{disabled}}" value="{{value}}" wrap="{{wrap}}" event-bus="[[eventBus]]">
         <content></content>
       </asq-sqlite-q-presenter>
     </template>
@@ -62,6 +62,14 @@ Example:
       behaviors: [ASQ.asqQuestionElementBehavior],
       
       properties: {
+
+        /**
+         * Load an external db from a URL. If not specified a new empty database is created.
+         */
+        dbUrl: {
+          type:String, 
+          notify: true
+        },
 
         /**
          * Set to true to style the element as disabled.

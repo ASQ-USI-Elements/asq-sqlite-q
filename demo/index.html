@@ -33,7 +33,7 @@
 </head>
 <body unresolved>
   <h3>Viewer</h3>
-  <asq-sqlite-q role="viewer">
+  <asq-sqlite-q role="viewer" db-url="../assets/Chinook_Sqlite.sqlite">
     <asq-stem><h4>INSERT some valid data in the TABLE `employees`</h4></asq-stem>
     <code>DROP TABLE IF EXISTS employees;
 CREATE TABLE employees( id          integer,  name    text,
@@ -61,7 +61,7 @@ SELECT name,hired_on FROM employees ORDER BY hired_on;</code>
   </asq-sqlite-q>
   
   <h3>Presenter</h3>
-  <asq-sqlite-q role="presenter">
+  <asq-sqlite-q role="presenter" db-url="../assets/Chinook_Sqlite.sqlite">
     <asq-stem><h4>INSERT some valid data in the TABLE `employees`</h4></asq-stem>
     <code>DROP TABLE IF EXISTS employees;
 CREATE TABLE employees( id          integer,  name    text,
