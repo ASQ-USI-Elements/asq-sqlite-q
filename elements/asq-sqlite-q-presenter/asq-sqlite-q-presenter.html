@@ -11,6 +11,9 @@
 <link rel="import" href="../../../paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../../../paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../../iron-icons/av-icons.html">
+<link rel="import" href="../../../iron-icons/iron-icons.html">
+
+<link rel="import" href="../../button-styles.html">
 <link rel="import" href="../../button-styles.html">
 <!--
 `asq-sqlite-q-presenter` is the __presenter__ version of `asq-sqlite-q`. It's not intended to be used on its own.
@@ -22,6 +25,7 @@
 @homepage http://github.com/ASQ-USI-Elements/asq-sqlite-q
 -->
 <dom-module id="asq-sqlite-q-presenter">
+  <style include="button-styles"></style>
   <style>
     :host{
       @apply(--layout-vertical);
@@ -112,7 +116,9 @@
         border:1px solid #777;
       }
 
-
+      #solutionBtn{
+        margin-left: 14px;
+      }
 
     </style>
   <template>
@@ -126,6 +132,7 @@
           <paper-icon-button id="executeBtn" icon="av:play-arrow" on-tap="_onExecuteBtnTap" title="Execute Query"></paper-icon-button>          
           <span id="statusMsg">{{_statusMessage}}</span>
           <paper-checkbox checked="{{_shouldReloadDb}}">Reload database on submission</paper-checkbox>
+          <paper-icon-button id="solutionBtn" icon="done-all" on-tap="_onSolutionBtnTap" title="Show Solution"></paper-icon-button>
         </paper-toolbar>
         <div id="aceContainer">
           <ace-element id="editor" mode="sql" theme="{{theme}}" readonly="{{disabled}}" wrap="{{wrap}}" font-size="{{fontSize}}" tabsize="{{tabSize}}">{{value}}</ace-element>
@@ -367,6 +374,12 @@
       _selectedSubmissionItemChanged: function(newItem, old){
         if(! newItem) return;
 
+        this._resetDb();
+
+        this.value = newItem.submission;
+      },
+
+      _resetDb : function(){
         if(this._shouldReloadDb){
           if(this._externalDb){
             this._workerLoadDb(this._externalDb)
@@ -374,8 +387,6 @@
             this.worker.postMessage({action:'open'});
           }
         }
-
-        this.value = newItem.submission;
       },
 
       _onQuestionType: function (evt) {
@@ -394,6 +405,7 @@
         evt.questions.forEach(function(q){
          if(q.uid != this.uid) return;
          this._submissions = q.answers;
+         this.solution = q.data.solution;
         }.bind(this));
       },
 
@@ -402,6 +414,11 @@
           return;
 
         this._submissions = evt.question.answers;
+      },
+
+      _onSolutionBtnTap: function (event, detail) {
+        this._resetDb();
+        this.value = this.solution;
       },
 
       _eventBusChanged: function (eventBus, old) {
