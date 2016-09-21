@@ -14,7 +14,7 @@
     "polymer": "polymer/polymer#^1.2.1",
     "ace-element": "triglian/ace-element#master",
     "asq-base": "ASQ-USI-Elements/asq-base#master",
-    "iron-list": "polymerelements/iron-list#^1.1.5",
+    "iron-list": "polymerelements/iron-list#^1.3.8",
     "paper-tabs": "polymerelements/paper-tabs#^1.0.10",
     "paper-item": "PolymerElements/paper-item#^1.0.7",
     "paper-styles": "PolymerElements/paper-styles#^1.0.12",
