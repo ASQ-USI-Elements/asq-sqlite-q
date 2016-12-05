@@ -139,6 +139,7 @@
         </div>
         <div id="output">
           <div id="errorMsg">{{_errorMessage}}</div>
+          <div id="zeroResultsMsg">{{_0ResultsMsg}}</div>
           <template is="dom-repeat" items="{{_results}}" as="result">
             <table>
               <thead>
@@ -330,7 +331,8 @@
         this.worker = new Worker(this.resolveUrl("../../js/worker.sql.js"));
         this.worker.onerror = function error(e) {
           this._results = [];
-          this._statusMessage = "Error"
+          this._0ResultsMsg = '';
+          this._statusMessage = "Error";
           this._errorMessage = e.message.toString();
         }.bind(this)
 
@@ -346,7 +348,7 @@
         this.worker.onmessage = function(event) {
           this._errorMessage = '';
           this._results=event.data.results;
-
+          this._0ResultsMsg = this._results.length === 0 ? '0 results retrieved' : '' 
 
           this._statusMessage = "Displaying results";
         }.bind(this); 
